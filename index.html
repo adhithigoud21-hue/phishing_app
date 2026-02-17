@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Detector</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { transform: translateY(-2px); }
+        button:disabled { opacity: 0.6; }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        .legitimate {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+        .phishing {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+        .result-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .legitimate .result-title { color: #155724; }
+        .phishing .result-title { color: #721c24; }
+        .confidence {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+        .features {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .feature-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Phishing Detector</h1>
+        <p class="subtitle">AI-powered URL analysis using Machine Learning</p>
+        
+        <label for="urlInput">Enter URL to analyze:</label>
+        <input type="text" id="urlInput" placeholder="https://example.com" />
+        <button onclick="analyzeURL()">Analyze URL</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px;">Analyzing...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="result" id="result">
+            <div class="result-title" id="resultTitle"></div>
+            <div class="confidence" id="confidence"></div>
+            <div class="features" id="features"></div>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeURL() {
+            const url = document.getElementById('urlInput').value.trim();
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+            
+            resultDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            
+            if (!url) {
+                errorDiv.textContent = 'Please enter a URL';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            loadingDiv.style.display = 'block';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    errorDiv.textContent = data.error;
+                    errorDiv.style.display = 'block';
+                } else {
+                    displayResult(data);
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Cannot connect to server. Make sure Flask is running!';
+                errorDiv.style.display = 'block';
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+        
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result');
+            const resultTitle = document.getElementById('resultTitle');
+            const confidence = document.getElementById('confidence');
+            const featuresDiv = document.getElementById('features');
+            
+            resultDiv.className = 'result ' + data.prediction;
+            
+            if (data.prediction === 'legitimate') {
+                resultTitle.textContent = '✅ Legitimate URL';
+            } else {
+                resultTitle.textContent = '⚠️ Phishing Detected!';
+            }
+            
+            confidence.textContent = `Confidence: ${(data.probability * 100).toFixed(2)}%`;
+            
+            let featuresHTML = '<h4 style="margin-bottom: 10px;">Features:</h4>';
+            for (const [key, value] of Object.entries(data.features)) {
+                const name = key.replace(/_/g, ' ').toUpperCase();
+                featuresHTML += `
+                    <div class="feature-item">
+                        <span><strong>${name}:</strong></span>
+                        <span>${value}</span>
+                    </div>
+                `;
+            }
+            featuresDiv.innerHTML = featuresHTML;
+            resultDiv.style.display = 'block';
+        }
+        
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') analyzeURL();
+        });
+    </script>
+</body>
+</html>

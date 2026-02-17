@@ -1,0 +1,19 @@
+# Core Machine Learning Libraries
+scikit-learn>=1.4.0
+pandas>=2.1.0
+numpy>=1.24.0,<2.0.0
+xgboost>=2.0.0
+
+# Streamlit and Visualization
+streamlit>=1.30.0
+plotly>=5.18.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# URL Processing and Analysis
+tldextract>=5.0.0
+dnspython>=2.4.0
+
+# Utilities
+pillow>=10.0.0
+requests>=2.31.0
