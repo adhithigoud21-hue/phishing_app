@@ -122,7 +122,7 @@ def pie_chart(probabilities):
 def main():
     st.markdown('<h1 class="main-header">🔒 Advanced Phishing URL Detector</h1>',
                 unsafe_allow_html=True)
-    st.markdown("#### Ensemble ML (RF + GB + XGBoost) · Rule-based overrides")
+    st.markdown("#### Powered by Machine Learning Ensemble Models ")
 
     model, scaler, metrics, feature_importance = load_models()
 
